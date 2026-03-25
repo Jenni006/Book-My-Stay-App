@@ -1,52 +1,42 @@
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 public class RoomAllocationService {
 
-    private Set<String> allocatedRoomIds;
+    private int singleCount = 5;
+    private int doubleCount = 3;
+    private int suiteCount = 2;
 
-    private Map<String, Set<String>> assignedRoomsByType;
-
-    public RoomAllocationService() {
-        allocatedRoomIds = new HashSet<>();
-        assignedRoomsByType = new HashMap<>();
-    }
-
+    // Allocate a room based on reservation
     public void allocateRoom(Reservation reservation, RoomInventory inventory) {
         String roomType = reservation.getRoomType();
+        String allocatedRoomId = "";
 
-        // Check if room type is available
-        Integer available = inventory.getRoomAvailability().get(roomType);
-        if (available == null || available <= 0) {
-            System.out.println("No rooms available for type: " + roomType + " for guest: " + reservation.getGuestName());
-            return;
+        switch (roomType) {
+            case "Single":
+                if (singleCount > 0) {
+                    singleCount--;
+                    allocatedRoomId = "Single-" + (5 - singleCount);
+                }
+                break;
+            case "Double":
+                if (doubleCount > 0) {
+                    doubleCount--;
+                    allocatedRoomId = "Double-" + (3 - doubleCount);
+                }
+                break;
+            case "Suite":
+                if (suiteCount > 0) {
+                    suiteCount--;
+                    allocatedRoomId = "Suite-" + (2 - suiteCount);
+                }
+                break;
         }
 
-        // Generate unique room ID
-        String roomId = generateRoomId(roomType);
+        if (!allocatedRoomId.isEmpty()) {
+            System.out.println("Booking confirmed for Guest: " + reservation.getGuestName()
+                    + ", Room ID: " + allocatedRoomId);
 
-        // Update allocated rooms
-        allocatedRoomIds.add(roomId);
-
-        assignedRoomsByType.putIfAbsent(roomType, new HashSet<>());
-        assignedRoomsByType.get(roomType).add(roomId);
-
-        // Reduce inventory
-        inventory.updateAvailability(roomType, available - 1);
-
-        // Confirm booking
-        System.out.println("Booking confirmed for Guest: " + reservation.getGuestName() + ", Room ID: " + roomId);
-    }
-
-    private String generateRoomId(String roomType) {
-        int counter = 1;
-        String roomId;
-        do {
-            roomId = roomType + "-" + counter;
-            counter++;
-        } while (allocatedRoomIds.contains(roomId));
-        return roomId;
+            // Update centralized inventory
+            int currentCount = inventory.getRoomAvailability().get(roomType);
+            inventory.updateAvailability(roomType, currentCount - 1);
+        }
     }
 }
