@@ -24,4 +24,8 @@ public class RoomInventory {
     public void updateAvailability(String roomType, int count) {
         roomAvailability.put(roomType, count);
     }
+
+    public boolean isRoomAvailable(String roomType) {
+        return roomAvailability.containsKey(roomType) && roomAvailability.get(roomType) > 0;
+    }
 }
